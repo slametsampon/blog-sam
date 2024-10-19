@@ -41,7 +41,9 @@
     "**/*.json",
     ".contentlayer/generated",
     ".contentlayer/generated/**/*.json",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "app/layout.tsx.org",
+    "app/[...slug]/layout.tsx.org"
   ],
   "exclude": ["node_modules"]
 }
