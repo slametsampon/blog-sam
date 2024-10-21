@@ -1,9 +1,8 @@
 import { defineDocumentType, ComputedFields, makeSource } from 'contentlayer/source-files'
 import { writeFileSync } from 'fs'
 import readingTime from 'reading-time'
-import GithubSlugger, { slug } from 'github-slugger'
+import { slug } from 'github-slugger'
 import path from 'path'
-import { allBlogs } from 'contentlayer/generated'
 
 // Remark packages
 import remarkGfm from 'remark-gfm'

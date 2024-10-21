@@ -3,8 +3,8 @@ title: Panduan Praktis Membangun dan Mengelola Sistem RAS & Aquaponik untuk Prak
 date: '2024-09-24'
 tags: ['perikanan', 'ras', 'akuaponik', 'hidroponik', 'akuakultur']
 draft: false
-summary: Aquaponik adalah sistem yang menggabungkan akuakultur (budidaya ikan) dan hidroponik (budidaya tanaman tanpa tanah), di mana limbah dari ikan digunakan sebagai nutrisi bagi tanaman. Dalam konteks Recirculation Aquaculture System (RAS), aquaponik bisa menjadi solusi alami untuk mengelola limbah nitrogen seperti amonia dan nitrat yang dihasilkan oleh ikan, serta meminimalisir penggantian air secara berkala.
 images: []
+summary: Aquaponik adalah sistem yang menggabungkan akuakultur (budidaya ikan) dan hidroponik (budidaya tanaman tanpa tanah), di mana limbah dari ikan digunakan sebagai nutrisi bagi tanaman. Dalam konteks Recirculation Aquaculture System (RAS), aquaponik bisa menjadi solusi alami untuk mengelola limbah nitrogen seperti amonia dan nitrat yang dihasilkan oleh ikan, serta meminimalisir penggantian air secara berkala.
 ---
 
 **Aquaponik** adalah sistem yang menggabungkan akuakultur (budidaya ikan) dan hidroponik (budidaya tanaman tanpa tanah), di mana limbah dari ikan digunakan sebagai nutrisi bagi tanaman. Dalam konteks Recirculation Aquaculture System (RAS), aquaponik bisa menjadi solusi alami untuk mengelola limbah nitrogen seperti amonia dan nitrat yang dihasilkan oleh ikan, serta meminimalisir penggantian air secara berkala.
@@ -98,7 +98,6 @@ Dalam sistem RAS, air yang digunakan untuk memelihara ikan disirkulasikan kembal
   - [**Langkah Awal**:](#langkah-awal)
   - [**Rekomendasi untuk Pengembangan Jangka Panjang**:](#rekomendasi-untuk-pengembangan-jangka-panjang)
 - [**12. Sumber dan Referensi**](#12-sumber-dan-referensi)
-- [**Catatan Akhir**](#catatan-akhir)
 - [Hak cipta^1. Artikel ini berdasar ChatGpt \& penulis tidak menjamin seluruh akurasi isinya](#hak-cipta1-artikel-ini-berdasar-chatgpt--penulis-tidak-menjamin-seluruh-akurasi-isinya)
 
 ### **1. Pendahuluan**
@@ -376,12 +375,16 @@ Degassing berfungsi untuk **menghilangkan gas-gas berbahaya** yang terlarut dala
    - **Cara Kerja**: Menggunakan efek **venturi** untuk mencampurkan udara ke dalam aliran air, memecah gelembung gas dan melepaskannya dari air.
    - **Keunggulan**: Efisien dan hemat energi, sering digunakan dalam sistem sirkulasi air.
 
+> **Catatan**: Ada peralatan spesial bisa digunakan untuk fungsi degassing dan Oksigenasi, dan bahkan untuk transport fluida(fungsi sama seperti pompa). Alat khusus itu namanya Airlift Pump. Jika berminat, bisa klik link berikut ini [Airlift Pump lebih detail](https://slamet-sam.netlify.app/blog/agri/airlift-pump)
+
 ---
 
 #### 6. **Sistem Oksigenasi**
 
 **Pentingnya Oksigen Terlarut (DO)**:  
 Oksigen terlarut (**DO - Dissolved Oxygen**) sangat penting bagi **ikan** dan **biofilter** dalam sistem aquaponik. Ikan memerlukan oksigen untuk respirasi, dan kadar DO yang rendah (kurang dari 5 mg/L) dapat menyebabkan stres, penurunan pertumbuhan, atau bahkan kematian. Selain itu, bakteri nitrifikasi dalam biofilter juga membutuhkan oksigen untuk mengubah amonia menjadi nitrat. Tanpa oksigen yang cukup, proses nitrifikasi akan terhambat, sehingga kualitas air menurun.
+
+> **Catatan**: Ada peralatan spesial bisa digunakan untuk fungsi degassing dan Oksigenasi, dan bahkan untuk transport fluida(fungsi sama seperti pompa). Alat khusus itu namanya Airlift Pump. Jika berminat, bisa klik link berikut ini [Airlift Pump lebih detail](https://slamet-sam.netlify.app/blog/agri/airlift-pump)
 
 ---
 
@@ -1561,16 +1564,6 @@ Berikut adalah beberapa referensi yang dapat digunakan sebagai sumber untuk memp
 
 10. **Nelson, P.** (2017). **Aquaponic Food Production: Raising Fish and Plants for Food and Profit**.
     - Buku referensi bagi mereka yang ingin mengembangkan sistem aquaponik menjadi skala komersial, dengan penjelasan tentang optimasi sistem dan strategi pemasaran hasil.
-
----
-
-### **Catatan Akhir**
-
-Kerangka ini dirancang untuk mencakup **semua topik penting** yang dibutuhkan oleh praktisi dalam membangun dan mengelola sistem aquaponik secara efisien dan produktif. Dengan fokus pada **komponen teknis** seperti **filter mekanis**, **degassing**, **oksigenasi**, dan **monitoring parameter kualitas air**, artikel ini memberikan panduan yang mendalam namun tetap praktis. Setiap aspek sistem dibahas untuk memastikan bahwa pembaca tidak hanya memahami konsep tetapi juga mampu menerapkannya secara langsung dalam sistem mereka.
-
-Penekanan khusus diberikan pada **efisiensi** dan **pengelolaan keseimbangan ekosistem**, sehingga sistem dapat berfungsi secara berkelanjutan dan menghasilkan produk yang optimal baik dari ikan maupun tanaman. Dengan pendekatan yang **langsung aplikatif**, kerangka ini sangat sesuai bagi praktisi yang menginginkan solusi cepat dan tepat untuk diterapkan di lapangan, tanpa perlu menyelami teori yang terlalu rumit. Tujuannya adalah memberikan **alat dan wawasan praktis** yang memungkinkan pembaca segera beraksi dan mengembangkan sistem mereka dengan percaya diri.
-
-Kerangka ini juga mendukung **skala kecil hingga komersial**, menawarkan fleksibilitas bagi pengguna untuk mengembangkan sistem sesuai dengan sumber daya dan kebutuhan yang dimiliki.
 
 ---
 
