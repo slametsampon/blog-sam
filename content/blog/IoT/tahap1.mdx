@@ -3,6 +3,7 @@ title: Tahap 1 – Pengembangan Sistem Monitoring dan Kontrol Individual (ESP-No
 date: '2024-10-26'
 tags: ['kontrol', 'iot', 'esp-32', 'esp-node', 'hortilink', 'sensor', 'web']
 draft: false
+images: []
 summary: Pada Tahap 1, kita akan membahas secara mendetail bagaimana perangkat ESP dapat digunakan dalam Mode Access Point (AP), membuat jaringan Wi-Fi lokal yang memungkinkan perangkat seperti smartphone atau laptop untuk mengakses dan mengontrol sistem hidroponik secara langsung.
 ---
 
@@ -59,7 +60,7 @@ Pada tahap ini, fokus utama adalah merancang perangkat keras yang dapat memonito
 | **Akurasi Kelembaban**            | ±2% RH (Rentang 20-80% RH)                                        | ±2% RH (Rentang 0-100% RH)                                           |
 | **Rentang Pengukuran Suhu**       | -40°C hingga 80°C                                                 | -40°C hingga 125°C                                                   |
 | **Rentang Pengukuran Kelembaban** | 0 hingga 100% RH                                                  | 0 hingga 100% RH                                                     |
-| **Kecepatan Respons**             | 2 detik (suhu), 5 detik (kelembaban)                              | <1 detik                                                             |
+| **Kecepatan Respons**             | 2 detik (suhu), 5 detik (kelembaban)                              | kurang dari 1 detik                                                  |
 | **Resolusi Suhu**                 | 0.1°C                                                             | 0.015°C                                                              |
 | **Resolusi Kelembaban**           | 0.1% RH                                                           | 0.01% RH                                                             |
 | **Tegangan Operasi**              | 3.3V hingga 6V                                                    | 2.4V hingga 5.5V                                                     |
@@ -243,6 +244,84 @@ Pada tahap ini, ESP8266 diatur untuk bekerja dalam **Mode Access Point (AP)**, d
 
 - **Kesimpulan**
   Mode **Access Point (AP)** pada ESP8266 adalah solusi praktis dan fleksibel untuk menciptakan jaringan Wi-Fi mandiri, memungkinkan sistem pertanian pintar seperti **HortiLink** untuk diakses secara lokal tanpa perlu infrastruktur jaringan tambahan. Proses setup ini melibatkan pengaturan nama jaringan, kata sandi, dan pembuatan antarmuka web untuk memonitor dan mengontrol perangkat yang terhubung.
+
+- **Lebih Lanjut ESP8266WebServer**
+
+**`ESP8266WebServer`** adalah library yang memungkinkan **ESP8266** berfungsi sebagai server web sederhana. Library ini sangat berguna dalam proyek IoT karena memungkinkan ESP8266 untuk menyediakan antarmuka web di mana pengguna dapat mengakses dan mengontrol perangkat melalui browser. Berikut adalah penjelasan lebih lanjut tentang fungsi dan penggunaannya.
+
+- **Fungsi Utama `ESP8266WebServer`**
+
+1. **Membuat Halaman Web**: Dengan `ESP8266WebServer`, kita bisa membuat halaman web yang dapat diakses melalui jaringan Wi-Fi lokal. Halaman ini memungkinkan pengguna untuk menampilkan data, seperti hasil sensor, dan juga mengontrol perangkat, seperti menyalakan atau mematikan lampu atau pompa.
+
+2. **Penanganan Rute (Routing)**: Library ini memiliki fungsi **`server.on()`** yang memungkinkan pengguna untuk mengatur “rute” atau alamat URL tertentu yang akan merespons tindakan tertentu. Misalnya:
+
+   - **Rute utama (root)** `/`: Halaman awal untuk antarmuka pengguna.
+   - **Rute data** `/getData`: Mengambil data sensor dalam format JSON.
+   - **Rute kontrol** `/control`: Mengontrol perangkat berdasarkan perintah yang dikirim pengguna (misalnya, `pump_on`, `valve_open`).
+
+3. **Mendukung Format Respons**: `ESP8266WebServer` dapat mengirim respons dalam berbagai format, termasuk **HTML**, **JSON**, dan **plain text**. Format JSON sering digunakan dalam aplikasi IoT karena memungkinkan data terstruktur yang mudah diakses oleh JavaScript di halaman web.
+
+4. **Koneksi HTTP**: Library ini mendukung **HTTP GET dan POST**, sehingga pengguna dapat mengirim data ke ESP8266 (POST) atau meminta data darinya (GET).
+
+- **Implementasi Dasar**
+
+Berikut adalah implementasi dasar untuk memulai dengan `ESP8266WebServer`:
+
+```cpp
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+
+ESP8266WebServer server(80);  // Menginisialisasi server di port 80
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.softAP("MyESP_AP", "12345678");  // Set mode Access Point
+
+  server.on("/", []() {
+    server.send(200, "text/html", "<h1>Welcome to My ESP Web Server</h1>");
+  });
+
+  server.on("/getData", []() {
+    String jsonData = "{\"temperature\":25,\"humidity\":60}";
+    server.send(200, "application/json", jsonData);
+  });
+
+  server.on("/control", []() {
+    String device = server.arg("device");
+    if (device == "on") {
+      // Perintah menyalakan perangkat
+    } else if (device == "off") {
+      // Perintah mematikan perangkat
+    }
+    server.send(200, "text/plain", "Command received");
+  });
+
+  server.begin();
+  Serial.println("Server started");
+}
+
+void loop() {
+  server.handleClient();
+}
+```
+
+- **Penjelasan Fungsi Utama**
+
+  - **`server.on(path, handler)`**: Mendaftarkan rute yang akan dipanggil saat pengguna mengakses `path`. Misalnya, **`/getData`** akan memanggil fungsi untuk mengirim data sensor.
+  - **`server.send(code, type, content)`**: Mengirim respons ke klien dengan kode status HTTP (misalnya 200 untuk sukses), tipe konten (`text/html`, `application/json`), dan isi konten.
+
+- **Kelebihan `ESP8266WebServer`**
+
+  - **Mudah Digunakan**: Library ini sangat sederhana, dengan API yang mudah dipahami untuk pengembangan aplikasi web kecil di ESP8266.
+  - **Cepat dan Ringan**: Library ini dioptimalkan untuk perangkat dengan sumber daya terbatas, seperti ESP8266, yang memiliki memori dan prosesor yang terbatas.
+  - **Fleksibel**: Dapat digunakan dalam berbagai aplikasi IoT untuk monitoring dan kontrol perangkat, baik melalui jaringan lokal maupun dengan Access Point langsung dari ESP8266.
+
+- **Keterbatasan**
+
+  - **Tidak Mendukung HTTPS**: Library ini hanya mendukung HTTP, bukan HTTPS, sehingga koneksinya tidak dienkripsi.
+  - **Keterbatasan untuk Aplikasi Kompleks**: Library ini lebih cocok untuk aplikasi web sederhana. Untuk aplikasi yang lebih kompleks atau real-time, lebih baik menggunakan **WebSocket** atau protokol lain seperti MQTT.
+
+  Dengan memahami **`ESP8266WebServer`**, Anda dapat membangun antarmuka web sederhana untuk berbagai aplikasi IoT, seperti memonitor sensor atau mengontrol perangkat secara langsung.
 
 ##### **2. Web Interface atau Aplikasi Mobile**:
 
