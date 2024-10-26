@@ -35,6 +35,7 @@ Seri ini dikemas dalam langkah-langkah yang praktis, sehingga Anda dapat mengiku
   - [**1.2. Implementasi Koneksi Wi-Fi dan Komunikasi dengan Smartphone/Laptop: ESP8266 dalam Mode Access Point (AP)**](#12-implementasi-koneksi-wi-fi-dan-komunikasi-dengan-smartphonelaptop-esp8266-dalam-mode-access-point-ap)
     - [**1. Penjelasan Mode Access Point (AP) pada ESP8266**](#1-penjelasan-mode-access-point-ap-pada-esp8266)
     - [**2. Web Interface atau Aplikasi Mobile**:](#2-web-interface-atau-aplikasi-mobile)
+    - [**3. Web Interface Menggunakan LittleFS**:](#3-web-interface-menggunakan-littlefs)
   - [**1.3. Pengujian dan Optimasi Prototipe**](#13-pengujian-dan-optimasi-prototipe)
 - [**Kesimpulan**](#kesimpulan)
 - [Hak cipta^1. Artikel ini berdasar ChatGpt \& penulis tidak menjamin seluruh akurasi isinya](#hak-cipta1-artikel-ini-berdasar-chatgpt--penulis-tidak-menjamin-seluruh-akurasi-isinya)
@@ -513,6 +514,182 @@ Jika ESP merespon dengan baik, maka akan tampak display berikut pada device
 ![dashboard-tahap1](/static/images/IoT/HortiLink-tahap1.PNG)
 
 **Dashboard Tahap1**
+
+##### **3. Web Interface Menggunakan LittleFS**:
+
+![Lebih detail setup LittleFS](https://slamet-sam.netlify.app/blog/IoT/web-server-esp#4-struktur-folder-untuk-file-web)
+
+- Buat folder `tahap1` serta folder `data` di dalamnya
+- Folder data untuk menyimpan seluruh file terkait web (html, css, javascript)
+- Contoh file yang perlu disimpan di dalam folder `data` meliputi:
+  - `index.html` — untuk halaman HTML utama.
+  - `style.css` — untuk gaya tampilan halaman web.
+  - `script.js` — untuk fungsi JavaScript.
+  - File-file ini nantinya akan diunggah ke ESP, di mana LittleFS akan menyimpannya di dalam memori ESP sehingga dapat diakses oleh web server.
+
+Sebagai contoh, struktur direktori proyek seharusnya tampak seperti berikut:
+
+```
+tahap1/
+├── data/
+│   ├── index.html
+│   ├── style.css
+│   └── script.js
+└── tahap1.ino
+```
+
+1. **index.html**
+
+```html
+<!doctype html>
+<html>
+  <head>
+    <title>HortiLink Web Interface</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>HortiLink Dashboard</h1>
+    <div class="sensor-data">
+      <p>Temperature: <span id="temperature">Loading...</span> °C</p>
+      <p>Humidity: <span id="humidity">Loading...</span> %</p>
+      <p>pH Level: <span id="ph">Loading...</span></p>
+      <p>EC Level: <span id="ec">Loading...</span> mS/cm</p>
+    </div>
+
+    <h2>Device Controls</h2>
+    <button class="control-btn" onclick="sendCommand('pump_on')">Turn Pump ON</button>
+    <button class="control-btn" onclick="sendCommand('pump_off')">Turn Pump OFF</button>
+    <br />
+    <button class="control-btn" onclick="sendCommand('valve_open')">Open Valve</button>
+    <button class="control-btn" onclick="sendCommand('valve_close')">Close Valve</button>
+
+    <script src="script.js"></script>
+  </body>
+</html>
+```
+
+2. **style.css**
+
+   ```css
+   body {
+     font-family: Arial, sans-serif;
+     text-align: center;
+   }
+   h1 {
+     color: green;
+   }
+   .sensor-data {
+     font-size: 20px;
+     margin-bottom: 20px;
+   }
+   .control-btn {
+     padding: 10px 20px;
+     margin: 10px;
+     background-color: #4caf50;
+     color: white;
+     border: none;
+     cursor: pointer;
+   }
+   .control-btn:active {
+     background-color: #45a049;
+   }
+   ```
+
+3. **script.js**
+
+   ```javascript
+   // Mengambil data sensor secara berkala dari ESP
+   setInterval(() => {
+     fetch('/getData')
+       .then((response) => response.json())
+       .then((data) => {
+         document.getElementById('temperature').innerText = data.temperature
+         document.getElementById('humidity').innerText = data.humidity
+         document.getElementById('ph').innerText = data.ph
+         document.getElementById('ec').innerText = data.ec
+       })
+   }, 5000) // Update setiap 5 detik
+
+   // Mengirim perintah untuk mengontrol pompa/valve
+   function sendCommand(command) {
+     fetch('/control?device=' + command).then((response) => {
+       if (response.ok) {
+         alert('Command sent: ' + command)
+       } else {
+         alert('Failed to send command')
+       }
+     })
+   }
+   ```
+
+4. **tahap1.ino**
+
+```cpp
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+
+ESP8266WebServer server(80);  // Web server pada port 80
+
+// Simulasi data sensor
+float temperature = 25.0;
+float humidity = 60.0;
+float ph = 6.5;
+float ec = 1.2;
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.softAP("HortiLink_AP", "12345678");  // Setup Access Point
+
+  // Rute untuk halaman web
+  server.on("/", []() {
+    server.send(200, "text/html", webpage);  // Mengirim halaman HTML
+  });
+
+  // Rute untuk mengambil data sensor
+  server.on("/getData", []() {
+    String data = "{\"temperature\":" + String(temperature) +
+                  ", \"humidity\":" + String(humidity) +
+                  ", \"ph\":" + String(ph) +
+                  ", \"ec\":" + String(ec) + "}";
+    server.send(200, "application/json", data);
+  });
+
+  // Rute untuk mengontrol perangkat
+  server.on("/control", []() {
+    String device = server.arg("device");
+    if (device == "pump_on") {
+      Serial.println("Turning pump ON");
+      // Aktifkan relay untuk pompa
+    } else if (device == "pump_off") {
+      Serial.println("Turning pump OFF");
+      // Matikan relay untuk pompa
+    } else if (device == "valve_open") {
+      Serial.println("Opening valve");
+      // Buka katup solenoid
+    } else if (device == "valve_close") {
+      Serial.println("Closing valve");
+      // Tutup katup solenoid
+    }
+    server.send(200, "text/plain", "OK");
+  });
+
+  server.begin();
+  Serial.println("Server started");
+}
+
+void loop() {
+  server.handleClient();
+}
+
+```
+
+5. **Lakukan upload file web dalam folder data dengan tool LittleFS**
+6. **Compile/verify file tahap1.ino dan upload ke esp**
+7. **Test seperti diterangan di atas**
+
+---
 
 - **Pengembangan Lanjutan**: Anda bisa mengembangkan lebih lanjut dengan menambahkan grafik data real-time, notifikasi push, atau integrasi dengan platform cloud seperti **Blynk** atau **Thingspeak**.
 

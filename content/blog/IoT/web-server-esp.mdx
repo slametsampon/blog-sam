@@ -68,7 +68,7 @@ ESP8266 dan ESP32 adalah mikrokontroler yang dirancang oleh Espressif Systems, t
 
 ![esp-8266](/static/images/IoT/esp-8266.webp)
 
-**Konsep ESP-8266 - sumber ChatGpt**
+**Ilustrasi ESP-8266 - sumber ChatGpt**
 
 Menggunakan ESP sebagai web server memiliki beberapa keuntungan penting untuk aplikasi IoT dan kontrol perangkat. Pertama, dengan memanfaatkan WiFi internal, ESP dapat berfungsi sebagai akses point (AP) atau terhubung ke router lokal sebagai station (STA), menjadikannya solusi yang fleksibel untuk berbagai skenario. Dalam mode AP, ESP dapat diakses langsung oleh perangkat yang berada di dekatnya, ideal untuk pengendalian lokal. Sedangkan dalam mode STA, ESP terhubung ke jaringan WiFi yang ada dan dapat diakses dari perangkat manapun yang terhubung ke jaringan yang sama, memberikan fleksibilitas untuk pengendalian jarak jauh. Selain itu, kemampuan ESP untuk menjalankan web server memungkinkan integrasi halaman web sebagai antarmuka pengguna, sehingga pengguna dapat melihat data dan mengontrol perangkat melalui browser biasa, baik di komputer maupun smartphone.
 
@@ -105,11 +105,11 @@ Untuk memprogram ESP dan mengunggah file web yang akan disajikan oleh server, be
 2. **LittleFS Plugin**  
    Plugin LittleFS diperlukan untuk mengunggah file statis (seperti HTML, CSS, dan JavaScript) ke ESP, yang akan digunakan oleh web server. Plugin ini tersedia untuk Arduino IDE dan PlatformIO. LittleFS akan mengelola file di dalam sistem file ESP, memungkinkan akses cepat dan efisien.
 
-   - **Langkah Instalasi di VS Code (PlatformIO)**:
+   - **Instalasi di Arduino IDE**:
+     - Jika Anda menggunakan Arduino IDE, instal plugin LittleFS dari [repositori GitHub ESP LittleFS](https://github.com/earlephilhower/arduino-littlefs-upload/releases) dan ikuti instruksi di sana untuk pemasangan.
+   - **Alternatif Instalasi di VS Code (PlatformIO)-belum di-test/coba**:
      - Instal **PlatformIO** di VS Code dari menu Extensions.
      - Setelah PlatformIO terpasang, buka **platformio.ini** di dalam proyek, lalu tambahkan `board_build.filesystem = littlefs` untuk mengaktifkan dukungan LittleFS pada ESP.
-   - **Alternatif Instalasi di Arduino IDE**:
-     - Jika Anda menggunakan Arduino IDE, instal plugin LittleFS dari [repositori GitHub ESP LittleFS](https://github.com/earlephilhower/ESP8266LittleFS) dan ikuti instruksi di sana untuk pemasangan.
 
 #### **2.3. Library yang Dibutuhkan**
 
