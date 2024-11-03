@@ -32,11 +32,13 @@ Seri ini dikemas dalam langkah-langkah yang praktis, sehingga Anda dapat mengiku
     - [1. **Pemilihan Sensor**:](#1-pemilihan-sensor)
     - [2. **Aktuator**:](#2-aktuator)
     - [3. **ESP-Family (ESP8266 atau ESP32)**:](#3-esp-family-esp8266-atau-esp32)
+    - [4. **Wiring Diagram - Fritzing**](#4-wiring-diagram---fritzing)
   - [**1.2. Implementasi Koneksi Wi-Fi dan Komunikasi dengan Smartphone/Laptop: ESP8266 dalam Mode Access Point (AP)**](#12-implementasi-koneksi-wi-fi-dan-komunikasi-dengan-smartphonelaptop-esp8266-dalam-mode-access-point-ap)
     - [**1. Penjelasan Mode Access Point (AP) pada ESP8266**](#1-penjelasan-mode-access-point-ap-pada-esp8266)
     - [**2. Web Interface atau Aplikasi Mobile**:](#2-web-interface-atau-aplikasi-mobile)
     - [**3. Web Interface Menggunakan LittleFS**:](#3-web-interface-menggunakan-littlefs)
   - [**1.3. Pengujian dan Optimasi Prototipe**](#13-pengujian-dan-optimasi-prototipe)
+  - [**1.4 Pengembangan Lanjutan**:](#14-pengembangan-lanjutan)
 - [**Kesimpulan**](#kesimpulan)
 - [Hak cipta^1. Artikel ini berdasar ChatGpt \& penulis tidak menjamin seluruh akurasi isinya](#hak-cipta1-artikel-ini-berdasar-chatgpt--penulis-tidak-menjamin-seluruh-akurasi-isinya)
 
@@ -358,7 +360,7 @@ Anda akan menggunakan:
 
 Langkah pertama adalah membuat struktur halaman HTML sederhana yang dapat menampilkan data sensor dan tombol untuk mengontrol perangkat. Berikut contoh sederhana:
 
-- **a. Kode HTML Dasar untuk Antarmuka Web**
+- **Kode HTML Dasar untuk Antarmuka Web**
 
 ```html
 <!doctype html>
@@ -705,8 +707,6 @@ void loop() {
 
 ---
 
-- **Pengembangan Lanjutan**: Anda bisa mengembangkan lebih lanjut dengan menambahkan grafik data real-time, notifikasi push, atau integrasi dengan platform cloud seperti **Blynk** atau **Thingspeak**.
-
 - **Real-Time Monitoring**: Respons sistem diuji dengan memastikan data sensor diperbarui secara berkala (misalnya setiap 5 detik) dan ditampilkan dalam antarmuka pengguna tanpa penundaan signifikan.
 - **Kontrol Aktuator**: Sistem diuji dengan mengaktifkan pompa atau solenoid berdasarkan kondisi sensor (misalnya, ketika kelembaban turun di bawah titik tertentu, pompa irigasi otomatis dinyalakan).
 
@@ -727,11 +727,33 @@ Pengujian prototipe dilakukan secara menyeluruh untuk memastikan stabilitas, ket
    - **Kalibrasi Sensor**: Sensor-sensor seperti pH dan EC perlu dikalibrasi secara berkala untuk memastikan akurasi. Ketidakakuratan dalam pengukuran dapat diidentifikasi selama pengujian dan memerlukan penyesuaian atau penggantian sensor.
    - **Optimasi Respons Aktuator**: Jika terjadi keterlambatan dalam aktivasi pompa atau katup solenoid, optimasi firmware ESP dilakukan dengan cara mengurangi latensi pada siklus pengukuran dan pengiriman data.
 
+#### **1.4 Pengembangan Lanjutan**:
+
+[Seluruh file pengembangan lebih lanjut pada tahap-1 ini dapat dilihat pada link berikut ini](https://github.com/slametsampon/HortiLink/tree/main/tahap1)
+
+Adapun features pada pengembangan ini adalah :
+
+1. Dashboard - sebagai home base
+   ![dashboard](/static/images/IoT/HortiLink-dashboard.PNG)
+
+2. Login/Logout - Authentication & Authorization user
+   ![login](/static/images/IoT/HortiLink-login.PNG)
+
+3. Reporting
+   ![reporting](/static/images/IoT/HortiLink-report.PNG)
+
+4. Configuration
+   ![config](/static/images/IoT/HortiLink-config.PNG)
+
+5. About
+   ![about](/static/images/IoT/HortiLink-about.PNG)
+
+6. tahap1.ino
+   Pada sisi esp juga menyesuaikan untuk mendukung seluruh fungsi pada UI/UX - di sisi web
+
 ### **Kesimpulan**
 
 Tahap 1 dari proyek HortiLink bertujuan untuk menciptakan sistem yang dapat memantau kondisi lingkungan dalam sistem pertanian secara otomatis dan real-time. Dengan menggunakan ESP8266/ESP32, sensor, dan aktuator yang tepat, sistem ini dirancang untuk memastikan kondisi pertumbuhan tanaman optimal dengan sedikit intervensi manual. Pengujian berulang dan optimasi adalah bagian integral dari tahap ini untuk memastikan sistem bekerja secara efisien dan dapat diandalkan dalam berbagai skenario.
-
-Jika ada bagian dari materi ini yang perlu dijelaskan lebih lanjut, silakan beri tahu saya.
 
 ---
 
