@@ -735,23 +735,59 @@ Pengujian prototipe dilakukan secara menyeluruh untuk memastikan stabilitas, ket
 
 Adapun features pada pengembangan ini adalah :
 
-1. Dashboard - sebagai home base
-   ![dashboard](/static/images/IoT/HortiLink-dashboard.PNG)
+1.  Dashboard - sebagai home base
+    ![dashboard](/static/images/IoT/HortiLink-dashboard.PNG)
 
-2. Login/Logout - Authentication & Authorization user
-   ![login](/static/images/IoT/HortiLink-login.PNG)
+2.  Login/Logout - Authentication & Authorization user
+    ![login](/static/images/IoT/HortiLink-login.PNG)
 
-3. Reporting
-   ![reporting](/static/images/IoT/HortiLink-report.PNG)
+3.  Reporting
+    ![reporting](/static/images/IoT/HortiLink-report.PNG)
 
-4. Configuration
-   ![config](/static/images/IoT/HortiLink-config.PNG)
+4.  Configuration
+    ![config](/static/images/IoT/HortiLink-config.PNG)
 
-5. About
-   ![about](/static/images/IoT/HortiLink-about.PNG)
+5.  About
+    ![about](/static/images/IoT/HortiLink-about.PNG)
 
-6. tahap1.ino
-   Pada sisi esp juga menyesuaikan untuk mendukung seluruh fungsi pada UI/UX - di sisi web
+6.  tahap1.ino
+    Pada sisi esp juga menyesuaikan untuk mendukung seluruh fungsi pada UI/UX - di sisi web.
+    Berikut beberapa API - route pada ESP:
+
+    1.  Load static files :
+
+        | **No.** | **API - Route**    | **HTTP - Method** | **Description**                                                        |
+        | ------- | ------------------ | ----------------- | ---------------------------------------------------------------------- |
+        | 1       | /index.js          | HTTP_GET          | File javascript digunakan oleh index.html                              |
+        | 2       | /authentication.js | HTTP_GET          | File javascript digunakan oleh semua html files                        |
+        | 3       | /widgetsClass.js   | HTTP_GET          | File javascript digunakan oleh index.html untuk graphic                |
+        | 4       | /login.js          | HTTP_GET          | File javascript digunakan oleh login.html                              |
+        | 5       | /modal-dialog.js   | HTTP_GET          | File javascript digunakan oleh semua file html untuk menampilkan About |
+        | 6       | /login.js          | HTTP_GET          | File javascript digunakan oleh login.html                              |
+        | 7       | /report.js         | HTTP_GET          | File javascript digunakan oleh report.html                             |
+        | 8       | /config.js         | HTTP_GET          | File javascript digunakan oleh config.html                             |
+        | 9       | /logoHortiLink     | HTTP_GET          | File image untuk menampilkan logo GMF pada index.html dan report.html  |
+        | 10      | /report.js         | HTTP_GET          | File javascript digunakan oleh report.html                             |
+        | 11      | /style.css         | HTTP_GET          | File CSS digunakan untuk semua file html                               |
+
+    2.  Memberikan response atas permintaan web-browser
+
+        | **No.** | **API - Route**  | **HTTP - Method** | **Description**                                                                                          |
+        | ------- | ---------------- | ----------------- | -------------------------------------------------------------------------------------------------------- |
+        | 1       | /                | HTTP_GET          | Menampilkan home page - Dashboard (index.html)                                                           |
+        | 2       | /report          | HTTP_GET          | Menampilkan report page (report.html)                                                                    |
+        | 3       | /login           | HTTP_GET          | Menampilkan login page (login.html)                                                                      |
+        | 4       | /login           | HTTP_POST         | Kirim data username & password untuk user (login.html)                                                   |
+        | 5       | /loginStatus     | HTTP_GET          | AJAX data untuk mengirimkan status login user (login.html)                                               |
+        | 6       | /logout          | HTTP_GET          | Menampilkan dialog logout selanjutnya home page                                                          |
+        | 7       | /config          | HTTP_GET          | Menampilkan config page (config.html)                                                                    |
+        | 8       | /config          | HTTP_POST         | Update data konfigurasi sensor (config.html)                                                             |
+        | 9       | /getTrendingData | HTTP_GET          | AJAX data trending pada graphic home page (index.html)                                                   |
+        | 10      | /getSensorConfig | HTTP_GET          | AJAX data konfigurasi sensor pada graphic home page dan config page (index.html, config.html)            |
+        | 11      | /getActiveUser   | HTTP_GET          | AJAX data aktive user digunakan pada semjua home page untuk authentication dan authorization(index.html) |
+        | 12      | /haourlyAvgDay   | HTTP_GET          | AJAX data untuk report page (report.html)                                                                |
+        | 13      | /getSensor       | HTTP_GET          | AJAX data untuk menampilkan data pengukuran sensor pada home page (index.html)                           |
+        | 14      | /getSamplingTime | HTTP_GET          | AJAX data untuk sampling time (config.html)                                                              |
 
 ### **Kesimpulan**
 
