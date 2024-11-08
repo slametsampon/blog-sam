@@ -78,6 +78,8 @@ Berikut adalah tahapan komprehensif untuk proyek **HortiLink**. Tahapan ini menc
 - **Stres Test Sistem**: Simulasikan berbagai skenario untuk menguji keandalan sistem, misalnya penambahan sensor atau kontrol pompa saat kelembaban turun.
 - **Perbaikan Bugs dan Troubleshooting**: Identifikasi dan perbaiki masalah yang muncul selama pengujian, seperti keterlambatan respons atau pembacaan sensor yang tidak akurat.
 
+[Lebih detail tahap 1](https://slamet-sam.netlify.app/blog/IoT/tahap1)
+
 ---
 
 ### **Tahap 2: Pembentukan Group ESP dan Komunikasi Melalui ESP-Gateway**
@@ -106,6 +108,10 @@ Berikut adalah tahapan komprehensif untuk proyek **HortiLink**. Tahapan ini menc
 - **Koneksi ESP-Lora ke Wi-Fi**: Gunakan satu ESP-Lora untuk berkomunikasi dengan ESP-Lora lain yang terhubung ke Wi-Fi dan bertindak sebagai penghubung ke server kustom.
 - **Protokol Komunikasi**: Pilih protokol komunikasi, seperti **MQTT** atau **HTTP**, untuk pengiriman data dari gateway ke server. MQTT lebih efisien untuk aplikasi IoT dengan data kecil yang dikirim secara periodik.
 
+![HortiLink Tahap3](/static/images/IoT/hortilink-tahap3.webp)
+
+**HortiLink Tahap3 Konsep - Sumber ChatGpt**
+
 #### 3.2 **Pengembangan Server Kustom**
 
 - **Desain Infrastruktur Server**: Bangun server khusus HortiLink untuk menerima dan menyimpan data dari gateway. Gunakan layanan **cloud** untuk skalabilitas atau server lokal jika data harus dijaga secara internal.
@@ -115,6 +121,8 @@ Berikut adalah tahapan komprehensif untuk proyek **HortiLink**. Tahapan ini menc
 
 - **Antarmuka Dashboard**: Buat dasbor yang mudah diakses oleh pengguna untuk memantau data sensor dan mengontrol perangkat dari jarak jauh. Dasbor ini harus responsif, mendukung mobile, dan menampilkan data secara real-time.
 - **Notifikasi dan Alarm**: Tambahkan fitur notifikasi otomatis untuk memberi tahu pengguna jika ada parameter yang keluar dari batas normal (misalnya, pH atau kelembaban terlalu rendah).
+
+[Lebih detail tahap 3](https://slamet-sam.netlify.app/blog/IoT/tahap3)
 
 ---
 

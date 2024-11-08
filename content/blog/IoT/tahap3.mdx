@@ -50,6 +50,26 @@ Di tahap ini, HortiLink mulai lebih canggih dengan menghubungkan perangkat IoT (
   - [**Lebih lanjut ESLint \& Prettier**](#lebih-lanjut-eslint--prettier)
   - [**Konfigurasi ESLint \& Prettier**](#konfigurasi-eslint--prettier)
 - [**Pattern MVC dan Atomic Design**](#pattern-mvc-dan-atomic-design)
+- [Otentikasi dan Otorisasi](#otentikasi-dan-otorisasi)
+  - [Mengapa Otentikasi dan Otorisasi Itu Penting?](#mengapa-otentikasi-dan-otorisasi-itu-penting)
+  - [Tujuan Otentikasi dan Otorisasi di HortiLink](#tujuan-otentikasi-dan-otorisasi-di-hortilink)
+  - [Manfaat Langsung bagi HortiLink](#manfaat-langsung-bagi-hortilink)
+  - [1. Instalasi dan Setup NextAuth](#1-instalasi-dan-setup-nextauth)
+  - [2. Integrasi NextAuth dengan MongoDB Menggunakan Mongoose](#2-integrasi-nextauth-dengan-mongodb-menggunakan-mongoose)
+    - [2.1 Setup Koneksi MongoDB](#21-setup-koneksi-mongodb)
+    - [2.2 Membuat Model User dengan Role di MongoDB](#22-membuat-model-user-dengan-role-di-mongodb)
+    - [2.3 Menyimpan dan Mengambil Role dari Database](#23-menyimpan-dan-mengambil-role-dari-database)
+  - [3. Middleware untuk Proteksi Rute Berdasarkan Role](#3-middleware-untuk-proteksi-rute-berdasarkan-role)
+    - [3.1 Konsep Role-Based Access Control (RBAC)](#31-konsep-role-based-access-control-rbac)
+    - [3.2 Implementasi Middleware di Next.js](#32-implementasi-middleware-di-nextjs)
+    - [3.3 Menangani Akses Ditolak](#33-menangani-akses-ditolak)
+    - [3.4 Testing Middleware](#34-testing-middleware)
+  - [4. Kontrol Akses di Komponen Client](#4-kontrol-akses-di-komponen-client)
+    - [4.1 Menggunakan `useSession` untuk Kontrol Akses](#41-menggunakan-usesession-untuk-kontrol-akses)
+    - [4.2 Menyembunyikan atau Menampilkan Fitur Berdasarkan Role](#42-menyembunyikan-atau-menampilkan-fitur-berdasarkan-role)
+  - [5. Fitur Lanjutan: Redirect Setelah Login dan Logout](#5-fitur-lanjutan-redirect-setelah-login-dan-logout)
+    - [5.1 Redirect Setelah Login](#51-redirect-setelah-login)
+    - [5.2 Redirect Setelah Logout](#52-redirect-setelah-logout)
 - [Hak cipta^1. Artikel ini berdasar ChatGpt \& penulis tidak menjamin seluruh akurasi isinya](#hak-cipta1-artikel-ini-berdasar-chatgpt--penulis-tidak-menjamin-seluruh-akurasi-isinya)
 
 ---
@@ -626,6 +646,8 @@ hortilink/
   export default SensorDataModel
   ```
 
+  [Lebih detail terkait data model dengan mongoDB-Mongose](https://slamet-sam.netlify.app/blog/IoT/dataModelHortiLink)
+
   - b. **Controller**
 
   Controller akan mengelola logika bisnis. Di Next.js, kita akan memanggil controller ini di dalam API Routes di `app/api`.
@@ -792,6 +814,864 @@ hortilink/
 - **5. Mengintegrasikan di Halaman**
 
 Di **App Router**, kita bisa menggunakan struktur ini dalam halaman `app/farm/page.tsx` atau `app/sensor/page.tsx`, menggabungkan komponen dari Atomic Design dan mengakses data melalui controller.
+
+---
+
+Tentu, berikut adalah kerangka bab beserta outline untuk bagian **Otentikasi dan Otorisasi** pada proyek situs HortiLink. Kerangka ini bisa membantu menyusun penjelasan yang sistematis dan komprehensif, mulai dari pengenalan hingga implementasi praktis dengan NextAuth, MongoDB, dan middleware untuk proteksi rute berdasarkan role.
+
+---
+
+### Otentikasi dan Otorisasi
+
+Dalam aplikasi modern, terutama yang melibatkan data sensitif atau fungsi penting seperti HortiLink, **otentikasi** dan **otorisasi** adalah dua pilar yang tak bisa diabaikan. Keduanya berfungsi sebagai gerbang keamanan utama yang memastikan siapa saja yang mengakses aplikasi memang benar-benar pengguna yang memiliki izin. Otentikasi dan otorisasi adalah kunci untuk menjaga data dan fungsionalitas tetap aman dari akses yang tidak sah. Mari kita bahas satu per satu kenapa ini penting dan bagaimana kita menerapkannya di HortiLink.
+
+#### Mengapa Otentikasi dan Otorisasi Itu Penting?
+
+1. **Melindungi Data dan Fungsi Kritikal**
+
+   - Bayangkan sebuah aplikasi tanpa kontrol keamanan. Semua orang bisa masuk dan melihat data penting tanpa batasan. Bagi HortiLink, aplikasi yang menangani data operasional dan teknis, membuka akses tanpa filter bisa menimbulkan risiko besar, baik dari segi keamanan maupun stabilitas aplikasi.
+   - Otentikasi memastikan bahwa yang masuk ke aplikasi hanyalah orang-orang yang memiliki akun yang valid, bukan sembarang orang. Sementara itu, otorisasi memastikan bahwa hanya pengguna tertentu yang bisa mengakses data atau fungsi tertentu, tergantung pada peran dan izin mereka.
+
+2. **Membatasi Akses Berdasarkan Peran**
+   - Di HortiLink, kita akan memiliki berbagai jenis pengguna: **Admin**, **Engineer**, **Teknisi/Operator**, dan **Guest**. Setiap peran ini punya hak dan akses berbeda-beda.
+   - Misalnya, **Admin** mungkin bisa mengakses dan mengubah segala hal, dari data pengguna hingga pengaturan sistem. **Engineer** hanya bisa mengakses data teknis, sedangkan **Operator** mungkin hanya perlu mengakses data operasional tertentu. Dengan otorisasi berbasis role, kita bisa memastikan setiap pengguna memiliki akses yang sesuai, tanpa risiko membuka data kritikal kepada orang yang tidak berhak.
+
+#### Tujuan Otentikasi dan Otorisasi di HortiLink
+
+Di sinilah **NextAuth** masuk sebagai sistem otentikasi, yaitu proses yang memungkinkan pengguna login dengan akun masing-masing. Selain memudahkan proses login, NextAuth mendukung berbagai metode otentikasi, termasuk melalui akun sosial media (seperti Google dan GitHub) dan login berbasis email dan password. Dengan NextAuth, pengguna dapat dengan mudah masuk ke dalam aplikasi, dan kita bisa memastikan mereka benar-benar adalah pengguna yang terdaftar.
+
+Kemudian, untuk otorisasi berbasis role, kita akan menggunakan **middleware** yang akan mengelola izin akses setiap pengguna berdasarkan perannya. Artinya, setelah pengguna berhasil login, middleware ini akan memeriksa apakah mereka memiliki hak yang sesuai untuk mengakses halaman atau fitur tertentu di aplikasi.
+
+#### Manfaat Langsung bagi HortiLink
+
+1. **Keamanan Data yang Lebih Baik**
+
+   - Dengan otentikasi yang kuat dan kontrol otorisasi, data sensitif, seperti data teknis perangkat atau informasi operasional yang spesifik, hanya dapat diakses oleh pengguna yang tepat. Ini memastikan bahwa data selalu aman dan mencegah akses yang tidak sah.
+
+2. **Pengalaman Pengguna yang Disesuaikan**
+
+   - Dengan menerapkan otorisasi berbasis role, setiap pengguna akan merasa bahwa aplikasi disesuaikan untuk peran mereka. Seorang teknisi hanya akan melihat bagian yang relevan dengan tugas operasional mereka, sementara admin akan mendapatkan akses ke semua data dan pengaturan yang mereka perlukan.
+
+3. **Menghindari Beban Teknis di Server**
+   - Membatasi akses tidak hanya soal keamanan, tetapi juga efisiensi. Dengan memastikan pengguna hanya bisa mengakses halaman dan fungsi yang mereka butuhkan, kita bisa mengurangi beban di server dan meningkatkan performa aplikasi secara keseluruhan.
+
+Jadi, dengan otentikasi dan otorisasi yang diterapkan melalui NextAuth dan middleware, HortiLink tidak hanya menjadi aplikasi yang aman tetapi juga efisien dan ramah pengguna. Setiap pengguna dapat menjalankan tugas mereka dengan tepat dan cepat, tanpa harus berurusan dengan data atau fungsi yang tidak relevan.
+
+---
+
+#### 1. Instalasi dan Setup NextAuth
+
+Pada bagian ini, akan dijelaskan langkah-langkah menginstal dan melakukan konfigurasi dasar NextAuth pada aplikasi HortiLink. NextAuth akan digunakan sebagai sistem otentikasi utama untuk mengelola login pengguna dan sesi aplikasi.
+
+- 1.1 Pengantar NextAuth
+  NextAuth adalah library otentikasi yang dirancang khusus untuk aplikasi Next.js. NextAuth memberikan solusi otentikasi yang mudah dan fleksibel dengan mendukung berbagai metode otentikasi, termasuk OAuth (misalnya Google, Facebook, GitHub) dan login berbasis email dan password.
+
+  **Kelebihan NextAuth**:
+
+  1. **Dukungan Berbagai Provider**: NextAuth mendukung banyak provider otentikasi (Google, Facebook, GitHub, dll.), sehingga memudahkan pengguna untuk login menggunakan akun sosial media mereka.
+  2. **Sistem Berbasis JSON Web Tokens (JWT)**: Menggunakan JWT, NextAuth mampu mengelola sesi secara aman di client-side dan server-side, yang sangat cocok untuk aplikasi yang membutuhkan otentikasi lintas platform.
+  3. **Fleksibilitas Callback**: NextAuth menyediakan berbagai callback yang memungkinkan kita untuk menyesuaikan proses otentikasi dan manajemen sesi sesuai kebutuhan aplikasi, termasuk penambahan data khusus seperti peran (role) pengguna.
+
+- 1.2 Instalasi NextAuth
+  Untuk memulai penggunaan NextAuth, lakukan instalasi library `next-auth` pada proyek Next.js dengan menggunakan perintah berikut:
+
+```bash
+npm install next-auth
+```
+
+Setelah instalasi selesai, NextAuth siap untuk dikonfigurasi sebagai sistem otentikasi di HortiLink.
+
+- 1.3 Konfigurasi Dasar NextAuth
+  Konfigurasi dasar NextAuth mencakup beberapa hal: menentukan provider otentikasi, menambahkan dukungan login berbasis username/password, serta mengatur callback untuk pengelolaan sesi. Berikut adalah penjelasan detail dari setiap langkah konfigurasi.
+
+- a. Menentukan Provider OAuth
+  Langkah pertama adalah menentukan provider yang akan digunakan dalam otentikasi. Pada contoh ini, kita akan mengkonfigurasi Google, Facebook, dan GitHub sebagai provider login.
+
+  1. Buat file konfigurasi NextAuth di `app/api/auth/[...nextauth]/route.ts`. Pastikan struktur file ini sesuai dengan arsitektur Next.js yang menggunakan App Router.
+  2. Tambahkan konfigurasi setiap provider sebagai berikut:
+
+  ```typescript
+  // app/api/auth/[...nextauth]/route.ts
+
+  import NextAuth from 'next-auth'
+  import GoogleProvider from 'next-auth/providers/google'
+  import FacebookProvider from 'next-auth/providers/facebook'
+  import GitHubProvider from 'next-auth/providers/github'
+  import CredentialsProvider from 'next-auth/providers/credentials'
+
+  export const authOptions = {
+    providers: [
+      GoogleProvider({
+        clientId: process.env.GOOGLE_CLIENT_ID!,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      }),
+      FacebookProvider({
+        clientId: process.env.FACEBOOK_CLIENT_ID!,
+        clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
+      }),
+      GitHubProvider({
+        clientId: process.env.GITHUB_CLIENT_ID!,
+        clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      }),
+    ],
+    // Konfigurasi tambahan untuk pengelolaan sesi akan ditambahkan pada langkah berikut
+  }
+
+  const handler = NextAuth(authOptions)
+
+  export { handler as GET, handler as POST }
+  ```
+
+  3. Pastikan Anda telah menambahkan variabel `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, dan `GITHUB_CLIENT_SECRET` pada file `.env.local` di root proyek Next.js.
+
+- b. Menambahkan Login Berbasis Username dan Password dengan Credentials Provider
+  Selain menggunakan provider OAuth, NextAuth juga mendukung login berbasis username dan password menggunakan **Credentials Provider**. Ini sangat bermanfaat jika aplikasi HortiLink juga ingin menyediakan opsi login khusus dengan email dan password.
+
+Tambahkan konfigurasi `CredentialsProvider` pada array `providers` di `authOptions`:
+
+```typescript
+// Lanjutan dari kode sebelumnya di app/api/auth/[...nextauth]/route.ts
+
+CredentialsProvider({
+  name: 'Credentials',
+  credentials: {
+    username: { label: 'Username', type: 'text' },
+    password: { label: 'Password', type: 'password' },
+  },
+  async authorize(credentials) {
+    // Logika otentikasi username/password
+    const user = { id: 1, name: 'user', email: 'user@example.com' } // Contoh pengguna statis
+
+    // Verifikasi user dari database atau layanan lain di sini
+    if (user) {
+      return Promise.resolve(user)
+    } else {
+      return Promise.resolve(null)
+    }
+  },
+})
+```
+
+Dengan menambahkan `CredentialsProvider`, pengguna dapat melakukan login menggunakan kombinasi username dan password. **Catatan**: pada aplikasi produksi, logika `authorize` harus diubah agar memvalidasi username/password dari basis data atau sumber lain yang sesuai.
+
+- c. Mengatur Callback NextAuth untuk Pengelolaan Sesi dengan JSON Web Tokens (JWT)
+  NextAuth memungkinkan kita untuk mengelola sesi menggunakan **JWT**. Kita dapat menambahkan callback `jwt` dan `session` untuk menyimpan informasi tambahan di token sesi pengguna, seperti peran (role) pengguna atau ID pengguna.
+
+Tambahkan konfigurasi berikut pada `authOptions`:
+
+```typescript
+// Lanjutan dari konfigurasi di app/api/auth/[...nextauth]/route.ts
+
+callbacks: {
+  async jwt({ token, user }) {
+    // Tambahkan data user ke token saat login pertama kali
+    if (user) {
+      token.id = user.id;
+      token.role = user.role || 'user'; // Menambahkan role default jika tidak ada
+    }
+    return token;
+  },
+  async session({ session, token }) {
+    // Tambahkan data dari token ke dalam sesi
+    session.user.id = token.id;
+    session.user.role = token.role;
+    return session;
+  },
+},
+session: {
+  strategy: 'jwt', // Gunakan JWT untuk mengelola sesi
+},
+```
+
+**Penjelasan:**
+
+- **Callback `jwt`**: Callback ini menambahkan data ke JWT setiap kali sesi pengguna diperbarui. Di sini, kita menambahkan `user.id` dan `user.role` ke dalam token.
+- **Callback `session`**: Callback ini menambahkan data dari token JWT ke dalam sesi pengguna, sehingga data ini bisa diakses di seluruh aplikasi.
+- **`strategy: 'jwt'`**: Menginstruksikan NextAuth untuk menggunakan JWT sebagai strategi penyimpanan sesi.
+
+Dengan konfigurasi ini, aplikasi HortiLink siap menggunakan NextAuth untuk otentikasi, mendukung beberapa provider, login berbasis username/password, dan manajemen sesi berbasis JWT.
+
+---
+
+#### 2. Integrasi NextAuth dengan MongoDB Menggunakan Mongoose
+
+Pada bagian ini, akan dibahas cara mengintegrasikan **NextAuth** dengan **MongoDB** menggunakan **Mongoose** sebagai ODM (Object-Document Mapping). Integrasi ini diperlukan untuk menyimpan data pengguna secara persisten, termasuk informasi penting seperti role pengguna, yang digunakan dalam otorisasi akses pada aplikasi HortiLink.
+
+##### 2.1 Setup Koneksi MongoDB
+
+Agar aplikasi dapat terhubung dengan MongoDB, kita perlu membuat file koneksi dan mengatur variabel lingkungan yang diperlukan untuk akses ke database MongoDB.
+
+- a. Membuat File `mongodb.ts` untuk Koneksi dengan Mongoose
+
+Buat file `mongodb.ts` di dalam folder `lib/` atau folder lain yang sesuai di dalam proyek. File ini akan mengelola koneksi MongoDB, memastikan hanya satu koneksi yang digunakan selama aplikasi berjalan. Pendekatan ini juga membantu menghindari masalah koneksi ulang yang tidak diperlukan, terutama saat menggunakan fitur **Fast Refresh** di Next.js.
+
+Berikut adalah contoh implementasi file `mongodb.ts`:
+
+```typescript
+// lib/mongodb.ts
+
+import mongoose from 'mongoose'
+
+const MONGODB_URI = process.env.MONGODB_URI as string
+
+if (!MONGODB_URI) {
+  throw new Error('Please define the MONGODB_URI environment variable inside .env.local')
+}
+
+// Caching koneksi agar tidak membuat koneksi baru saat Fast Refresh
+let cached = global.mongoose
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null }
+}
+
+async function connectToDatabase() {
+  if (cached.conn) {
+    return cached.conn
+  }
+
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(MONGODB_URI).then((mongoose) => {
+      return mongoose
+    })
+  }
+  cached.conn = await cached.promise
+  return cached.conn
+}
+
+export default connectToDatabase
+```
+
+**Penjelasan:**
+
+- `MONGODB_URI` adalah variabel lingkungan yang berisi URL koneksi ke MongoDB.
+- Fungsi `connectToDatabase` memastikan koneksi hanya dibuat satu kali selama aplikasi berjalan, dan koneksi ini disimpan dalam cache (`cached.conn`).
+- Pendekatan ini membantu mengurangi masalah koneksi yang berlebihan, terutama dalam lingkungan pengembangan.
+
+- b. Pengaturan Environment Variable untuk Koneksi MongoDB
+
+Tambahkan variabel lingkungan `MONGODB_URI` di file `.env.local` pada root proyek. Nilainya adalah URI koneksi MongoDB yang sesuai dengan pengaturan database yang digunakan.
+
+```env
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/mydatabase
+```
+
+Gantilah `username`, `password`, dan `mydatabase` sesuai dengan kredensial dan nama database yang digunakan.
+
+##### 2.2 Membuat Model User dengan Role di MongoDB
+
+Selanjutnya, kita perlu membuat model **User** di MongoDB yang mencakup informasi seperti nama, email, dan role pengguna. Model ini akan membantu mengelola dan mengakses data pengguna di seluruh aplikasi, khususnya untuk keperluan otorisasi.
+
+- a. Membuat Skema User Menggunakan Mongoose
+
+Buat file `User.ts` di dalam folder `models` untuk mendefinisikan skema Mongoose yang mencakup field `role`. Berikut ini adalah contoh skema pengguna dengan field dasar yang diperlukan.
+
+```typescript
+// models/User.ts
+
+import mongoose, { Schema, Document, Model } from 'mongoose'
+
+export interface IUser extends Document {
+  name: string
+  email: string
+  role: 'admin' | 'engineer' | 'operator' | 'guest'
+}
+
+const userSchema: Schema<IUser> = new Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  role: { type: String, enum: ['admin', 'engineer', 'operator', 'guest'], default: 'guest' },
+})
+
+const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', userSchema)
+
+export default User
+```
+
+**Penjelasan:**
+
+- **Field `name`**: Menyimpan nama pengguna, bersifat wajib (`required: true`).
+- **Field `email`**: Menyimpan email pengguna yang harus unik (`unique: true`) untuk setiap pengguna.
+- **Field `role`**: Menyimpan role pengguna dengan opsi `enum`, yaitu hanya menerima nilai 'admin', 'engineer', 'operator', atau 'guest'. Role default adalah 'guest'.
+
+Dengan model ini, kita bisa menyimpan dan mengelola pengguna di MongoDB serta memberikan role tertentu yang akan digunakan untuk keperluan otorisasi.
+
+##### 2.3 Menyimpan dan Mengambil Role dari Database
+
+Dalam otentikasi NextAuth, kita bisa menggunakan callback `jwt` dan `session` untuk menambahkan data role dari database MongoDB ke dalam token sesi. Ini memungkinkan kita untuk memanfaatkan role pengguna di seluruh aplikasi, baik untuk proteksi rute maupun pembatasan akses di bagian-bagian tertentu aplikasi.
+
+- a. Konfigurasi `authOptions` di NextAuth untuk Menyimpan Role
+
+Agar data role dari MongoDB tersimpan di token dan sesi pengguna, tambahkan konfigurasi `authOptions` berikut:
+
+```typescript
+// app/api/auth/[...nextauth]/route.ts
+
+import NextAuth from 'next-auth'
+import GoogleProvider from 'next-auth/providers/google'
+import CredentialsProvider from 'next-auth/providers/credentials'
+import connectToDatabase from '@/lib/mongodb'
+import User from '@/models/User'
+
+export const authOptions = {
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    CredentialsProvider({
+      name: 'Credentials',
+      credentials: {
+        email: { label: 'Email', type: 'text' },
+        password: { label: 'Password', type: 'password' },
+      },
+      async authorize(credentials) {
+        // Otentikasi username/password
+        await connectToDatabase()
+        const user = await User.findOne({ email: credentials?.email })
+
+        if (user) {
+          return user
+        } else {
+          return null
+        }
+      },
+    }),
+  ],
+  callbacks: {
+    async jwt({ token, user }) {
+      await connectToDatabase()
+
+      // Ambil data user dari database saat user login
+      if (user) {
+        const dbUser = await User.findOne({ email: user.email })
+        token.role = dbUser?.role || 'guest'
+      }
+      return token
+    },
+    async session({ session, token }) {
+      // Menyimpan role dari token ke session
+      session.user.role = token.role
+      return session
+    },
+  },
+  session: {
+    strategy: 'jwt', // Menggunakan JWT untuk manajemen sesi
+  },
+}
+
+const handler = NextAuth(authOptions)
+
+export { handler as GET, handler as POST }
+```
+
+**Penjelasan Konfigurasi**:
+
+- **Callback `authorize` di CredentialsProvider**: Digunakan untuk memvalidasi pengguna yang login menggunakan username dan password. Fungsi ini memeriksa email pengguna di MongoDB, dan jika ditemukan, user tersebut dikembalikan untuk melanjutkan sesi login.
+- **Callback `jwt`**: Setiap kali pengguna login atau sesi mereka diperbarui, callback ini akan menambahkan data `role` dari database MongoDB ke dalam token JWT.
+- **Callback `session`**: Callback ini menambahkan data role dari token ke dalam sesi. Dengan begitu, role pengguna dapat diakses di seluruh aplikasi melalui sesi pengguna.
+
+Dengan konfigurasi ini, NextAuth dapat menyimpan role dari database MongoDB ke dalam sesi pengguna, memungkinkan aplikasi untuk menentukan hak akses pengguna secara otomatis.
+
+---
+
+#### 3. Middleware untuk Proteksi Rute Berdasarkan Role
+
+Bagian ini akan menjelaskan penerapan **Role-Based Access Control (RBAC)** di aplikasi HortiLink menggunakan **middleware Next.js**. RBAC memungkinkan kita untuk membatasi akses ke halaman-halaman tertentu berdasarkan role pengguna, memastikan hanya pengguna dengan izin yang sesuai yang dapat mengakses halaman atau fitur tertentu.
+
+##### 3.1 Konsep Role-Based Access Control (RBAC)
+
+**Role-Based Access Control (RBAC)** adalah sistem manajemen akses yang menentukan hak akses pengguna berdasarkan peran (role) mereka. RBAC membantu memastikan bahwa setiap pengguna hanya dapat mengakses halaman atau fitur yang sesuai dengan peran mereka dalam aplikasi.
+
+Dalam aplikasi HortiLink, ada empat peran utama:
+
+1. **Admin**: Memiliki akses penuh ke semua halaman dan fitur.
+2. **Engineer**: Memiliki akses ke halaman teknis dan manajemen perangkat, tetapi tidak ke halaman administrasi.
+3. **Operator**: Memiliki akses terbatas hanya ke halaman pengoperasian perangkat.
+4. **Guest**: Hanya memiliki akses ke halaman umum yang tidak memerlukan login.
+
+Untuk implementasi RBAC, kita akan menggunakan **middleware** untuk memeriksa role pengguna dan membandingkannya dengan level akses yang dibutuhkan setiap halaman. Middleware akan membatasi akses secara otomatis sesuai dengan prioritas role pengguna.
+
+##### 3.2 Implementasi Middleware di Next.js
+
+NextAuth menyediakan fungsi `withAuth` yang memungkinkan kita membuat middleware untuk proteksi rute. Middleware ini akan membaca token sesi pengguna, memeriksa role mereka, dan menentukan apakah mereka memiliki hak akses yang cukup untuk mengakses halaman yang diminta.
+
+- a. Membuat Konstanta `ROLE_PRIORITY` dan `PROTECTED_ROUTES`
+
+Pertama, kita definisikan konstanta `ROLE_PRIORITY` dan `PROTECTED_ROUTES` untuk memudahkan middleware dalam menentukan hak akses setiap role terhadap halaman yang dilindungi.
+
+```typescript
+// middleware.ts
+
+// Definisikan prioritas untuk setiap role
+const ROLE_PRIORITY = {
+  admin: 1, // Akses penuh
+  engineer: 2, // Akses teknis
+  operator: 3, // Akses operasional
+  guest: 4, // Akses umum
+}
+
+// Tentukan rute yang dilindungi dan minimum prioritas aksesnya
+const PROTECTED_ROUTES = {
+  '/admin': ROLE_PRIORITY.admin, // Hanya admin
+  '/engineer': ROLE_PRIORITY.engineer, // Admin dan engineer
+  '/operator': ROLE_PRIORITY.operator, // Admin, engineer, dan operator
+  '/public': ROLE_PRIORITY.guest, // Semua pengguna, termasuk guest
+}
+```
+
+**Penjelasan**:
+
+- `ROLE_PRIORITY` mendefinisikan hierarki prioritas setiap role, di mana nilai lebih rendah menunjukkan prioritas lebih tinggi.
+- `PROTECTED_ROUTES` menentukan halaman yang membutuhkan proteksi, dengan level akses minimum berdasarkan prioritas.
+
+- b. Implementasi Middleware `withAuth` untuk Proteksi Rute
+
+Selanjutnya, kita buat middleware `withAuth` untuk memeriksa apakah pengguna memiliki hak akses yang cukup untuk mengakses rute tertentu. Middleware ini akan memeriksa role pengguna dan, jika diperlukan, mengarahkan mereka ke halaman `unauthorized` jika mereka tidak memiliki izin yang cukup.
+
+Berikut adalah implementasi lengkap middleware di file `middleware.ts`:
+
+```typescript
+// middleware.ts
+
+import { withAuth } from 'next-auth/middleware'
+import { NextResponse } from 'next/server'
+
+// Definisikan role dan rute yang dilindungi
+const ROLE_PRIORITY = {
+  admin: 1,
+  engineer: 2,
+  operator: 3,
+  guest: 4,
+}
+
+const PROTECTED_ROUTES = {
+  '/admin': ROLE_PRIORITY.admin,
+  '/engineer': ROLE_PRIORITY.engineer,
+  '/operator': ROLE_PRIORITY.operator,
+  '/public': ROLE_PRIORITY.guest,
+}
+
+export default withAuth(
+  function middleware(req) {
+    // Dapatkan token dari NextAuth middleware
+    const { token } = req.nextauth
+
+    // Redirect ke halaman login jika pengguna belum login
+    if (!token) {
+      return NextResponse.redirect(new URL('/login', req.url))
+    }
+
+    // Ambil role pengguna dari token dan tentukan prioritasnya
+    const userRolePriority =
+      ROLE_PRIORITY[token.role as keyof typeof ROLE_PRIORITY] || ROLE_PRIORITY.guest
+
+    // Ambil path dari URL yang diminta
+    const requestedPath = req.nextUrl.pathname
+
+    // Periksa akses berdasarkan rute yang dilindungi
+    for (const [path, minPriority] of Object.entries(PROTECTED_ROUTES)) {
+      if (requestedPath.startsWith(path)) {
+        // Jika prioritas user lebih tinggi dari yang dibutuhkan, redirect ke halaman unauthorized
+        if (userRolePriority > minPriority) {
+          return NextResponse.redirect(new URL('/unauthorized', req.url))
+        }
+        break
+      }
+    }
+
+    // Jika pengguna memiliki akses, lanjutkan ke halaman yang diminta
+    return NextResponse.next()
+  },
+  {
+    callbacks: {
+      authorized: ({ token }) => !!token, // Pastikan pengguna telah login
+    },
+  }
+)
+
+// Tentukan rute yang menggunakan middleware
+export const config = {
+  matcher: ['/admin/:path*', '/engineer/:path*', '/operator/:path*', '/public/:path*'],
+}
+```
+
+**Penjelasan Implementasi**:
+
+1. **Pengecekan Token**: Middleware ini menggunakan `withAuth` untuk mendapatkan token dari sesi pengguna. Jika token tidak ada, artinya pengguna belum login, dan akan diarahkan ke halaman login.
+2. **Pengecekan Role dan Prioritas**: Middleware mengecek role pengguna berdasarkan `token.role` dan mencocokkannya dengan `ROLE_PRIORITY`.
+3. **Akses ke Rute yang Dilindungi**: Middleware membandingkan `userRolePriority` dengan `minPriority` yang ditentukan untuk rute yang diminta. Jika role pengguna tidak memenuhi syarat, mereka akan diarahkan ke halaman `/unauthorized`.
+4. **Config `matcher`**: Middleware ini diterapkan hanya pada rute-rute tertentu yang membutuhkan proteksi, seperti `/admin`, `/engineer`, `/operator`, dan `/public`.
+
+##### 3.3 Menangani Akses Ditolak
+
+Untuk pengguna yang mencoba mengakses halaman tanpa izin yang cukup, middleware akan mengarahkan mereka ke halaman `unauthorized`. Halaman ini memberikan informasi bahwa akses ditolak karena kurangnya hak akses.
+
+- Membuat Halaman `unauthorized`
+
+Buat halaman `unauthorized` di `app/unauthorized/page.tsx` untuk menampilkan pesan akses ditolak.
+
+```typescript
+// app/unauthorized/page.tsx
+
+export default function UnauthorizedPage() {
+  return (
+    <div>
+      <h1>Access Denied</h1>
+      <p>You do not have permission to view this page.</p>
+      <a href="/">Back to Home</a>
+    </div>
+  );
+}
+```
+
+**Penjelasan**:
+
+- Halaman ini memberikan pesan sederhana bahwa akses ke halaman ini ditolak karena pengguna tidak memiliki izin yang sesuai.
+- Terdapat tautan kembali ke halaman utama untuk membantu navigasi pengguna.
+
+##### 3.4 Testing Middleware
+
+Setelah middleware selesai diimplementasikan, lakukan pengujian untuk memastikan proteksi rute berjalan dengan baik sesuai dengan role masing-masing pengguna. Berikut adalah skenario pengujian yang direkomendasikan:
+
+1. **Admin**: Pastikan pengguna dengan role `admin` memiliki akses penuh ke halaman `/admin`, `/engineer`, `/operator`, dan `/public`.
+2. **Engineer**: Pastikan pengguna dengan role `engineer` memiliki akses ke halaman `/engineer`, `/operator`, dan `/public`, tetapi diarahkan ke halaman `unauthorized` saat mencoba mengakses `/admin`.
+3. **Operator**: Pastikan pengguna dengan role `operator` hanya bisa mengakses halaman `/operator` dan `/public`, tetapi diarahkan ke halaman `unauthorized` saat mencoba mengakses `/admin` atau `/engineer`.
+4. **Guest**: Pastikan pengguna dengan role `guest` hanya bisa mengakses halaman `/public`, dan diarahkan ke halaman `unauthorized` jika mencoba mengakses halaman lain yang dilindungi.
+
+---
+
+#### 4. Kontrol Akses di Komponen Client
+
+Pada bagian ini, akan dibahas cara mengelola kontrol akses di sisi client menggunakan **NextAuth** dan **hook `useSession`**. Dengan memanfaatkan `useSession`, kita dapat melakukan pengecekan role pengguna pada komponen atau halaman tertentu di client-side, serta menyesuaikan tampilan elemen UI berdasarkan role pengguna. Pendekatan ini memungkinkan aplikasi memberikan pengalaman yang lebih disesuaikan untuk setiap jenis pengguna.
+
+##### 4.1 Menggunakan `useSession` untuk Kontrol Akses
+
+`useSession` adalah hook yang disediakan oleh NextAuth untuk mendapatkan informasi sesi pengguna yang sedang aktif. Dengan hook ini, kita dapat memeriksa **status login** dan **role pengguna** di setiap komponen client, memungkinkan pengaturan akses ke halaman tertentu secara dinamis berdasarkan role yang dimiliki pengguna.
+
+- a. Penggunaan Dasar `useSession` untuk Memeriksa Role
+
+Berikut adalah contoh penggunaan dasar `useSession` untuk memeriksa status sesi dan role pengguna. Implementasi ini akan menampilkan pesan akses ditolak jika pengguna tidak memiliki role yang diperlukan untuk mengakses halaman tertentu.
+
+Misalnya, pada halaman **Dashboard** yang hanya bisa diakses oleh pengguna dengan role `admin`, `engineer`, dan `operator`, kita dapat menerapkan `useSession` sebagai berikut:
+
+```typescript
+// app/dashboard/page.tsx
+
+'use client';
+
+import { useSession } from 'next-auth/react';
+
+export default function DashboardPage() {
+  const { data: session, status } = useSession();
+
+  // Menampilkan loading sementara menunggu status sesi
+  if (status === 'loading') return <p>Loading...</p>;
+
+  // Cek apakah user memiliki role yang diperbolehkan mengakses halaman dashboard
+  if (!session || (session.user.role !== 'admin' && session.user.role !== 'engineer' && session.user.role !== 'operator')) {
+    return <p>Access Denied. You do not have permission to view this page.</p>;
+  }
+
+  // Jika pengguna memiliki izin, tampilkan konten dashboard
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <p>Welcome, {session.user.name}!</p>
+      <p>Your role: {session.user.role}</p>
+    </div>
+  );
+}
+```
+
+**Penjelasan:**
+
+- `status === 'loading'` digunakan untuk menampilkan pesan loading sementara data sesi sedang diproses.
+- Kondisi `if (!session || ...)` mengecek apakah pengguna tidak memiliki sesi yang valid atau memiliki role yang tidak diizinkan. Jika demikian, pengguna akan diberikan pesan **Access Denied**.
+- Jika pengguna memiliki role yang sesuai (admin, engineer, atau operator), halaman Dashboard akan ditampilkan dengan pesan selamat datang.
+
+- b. Contoh Kontrol Akses Berbasis Role di Client-Side
+
+Untuk memberikan kontrol akses yang lebih fleksibel, kita bisa membuat fungsi khusus di komponen yang mengecek apakah role pengguna memenuhi persyaratan akses. Berikut adalah contoh fungsi `hasAccess` yang mengembalikan `true` jika pengguna memiliki role yang diizinkan, atau `false` jika sebaliknya:
+
+```typescript
+function hasAccess(session: any, allowedRoles: string[]) {
+  return session && allowedRoles.includes(session.user.role);
+}
+
+// Menggunakan fungsi di komponen
+if (!hasAccess(session, ['admin', 'engineer', 'operator'])) {
+  return <p>Access Denied. You do not have permission to view this page.</p>;
+}
+```
+
+Fungsi `hasAccess` ini dapat digunakan untuk memudahkan kontrol akses di berbagai komponen client, tanpa harus menuliskan ulang logika pengecekan role setiap kali.
+
+##### 4.2 Menyembunyikan atau Menampilkan Fitur Berdasarkan Role
+
+Selain mengatur akses ke halaman secara keseluruhan, `useSession` juga memungkinkan kita untuk **menyembunyikan atau menampilkan elemen UI** tertentu berdasarkan role pengguna. Hal ini bermanfaat untuk memberikan pengalaman pengguna yang lebih personal, dengan menampilkan hanya fitur-fitur yang relevan sesuai peran masing-masing pengguna.
+
+- a. Menampilkan atau Menyembunyikan Komponen Berdasarkan Role
+
+Misalkan, kita ingin menampilkan fitur manajemen pengguna hanya untuk pengguna dengan role `admin`, dan fitur pengelolaan perangkat untuk pengguna dengan role `engineer`. Kita bisa menambahkan logika pada komponen UI sebagai berikut:
+
+```typescript
+// app/dashboard/page.tsx
+
+'use client';
+
+import { useSession } from 'next-auth/react';
+
+export default function DashboardPage() {
+  const { data: session, status } = useSession();
+
+  if (status === 'loading') return <p>Loading...</p>;
+
+  if (!session || (session.user.role !== 'admin' && session.user.role !== 'engineer' && session.user.role !== 'operator')) {
+    return <p>Access Denied. You do not have permission to view this page.</p>;
+  }
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <p>Welcome, {session.user.name}!</p>
+      <p>Your role: {session.user.role}</p>
+
+      {/* Fitur hanya untuk Admin */}
+      {session.user.role === 'admin' && (
+        <div>
+          <h2>Admin Features</h2>
+          <button>Manage Users</button>
+        </div>
+      )}
+
+      {/* Fitur hanya untuk Engineer */}
+      {session.user.role === 'engineer' && (
+        <div>
+          <h2>Engineer Features</h2>
+          <button>Manage Devices</button>
+        </div>
+      )}
+
+      {/* Fitur untuk Admin dan Engineer */}
+      {(session.user.role === 'admin' || session.user.role === 'engineer') && (
+        <div>
+          <h2>Technical Reports</h2>
+          <button>View Reports</button>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+**Penjelasan**:
+
+- **Fitur Admin**: Hanya ditampilkan jika `session.user.role` adalah `admin`. Bagian ini dapat berisi fitur-fitur khusus yang hanya boleh diakses oleh admin, seperti manajemen pengguna.
+- **Fitur Engineer**: Ditampilkan jika `session.user.role` adalah `engineer`. Fitur ini bisa berisi elemen UI untuk manajemen perangkat atau fitur teknis lainnya.
+- **Fitur Gabungan untuk Admin dan Engineer**: Dengan kondisi `(session.user.role === 'admin' || session.user.role === 'engineer')`, bagian ini akan ditampilkan kepada admin dan engineer. Misalnya, fitur untuk melihat laporan teknis.
+
+- b. Menggunakan Komponen Terkondisi Berdasarkan Role
+
+Untuk membuat kode lebih rapi, kita juga bisa membuat komponen yang secara dinamis menampilkan elemen berdasarkan role pengguna. Komponen ini dapat digunakan untuk menyederhanakan kontrol akses pada berbagai fitur.
+
+```typescript
+// components/RoleBasedFeature.tsx
+
+import { useSession } from 'next-auth/react';
+
+interface RoleBasedFeatureProps {
+  allowedRoles: string[];
+  children: React.ReactNode;
+}
+
+export default function RoleBasedFeature({ allowedRoles, children }: RoleBasedFeatureProps) {
+  const { data: session } = useSession();
+
+  if (!session || !allowedRoles.includes(session.user.role)) {
+    return null; // Jangan tampilkan apapun jika role tidak sesuai
+  }
+
+  return <>{children}</>;
+}
+```
+
+**Penjelasan**:
+
+- Komponen `RoleBasedFeature` menerima dua properti: `allowedRoles`, yang merupakan array role yang diizinkan, dan `children`, yang berisi elemen atau komponen yang akan ditampilkan.
+- Jika `session.user.role` cocok dengan salah satu role di `allowedRoles`, maka `children` akan ditampilkan; jika tidak, elemen tidak akan ditampilkan sama sekali.
+
+Dengan komponen ini, kontrol akses di halaman dapat disederhanakan sebagai berikut:
+
+```typescript
+// app/dashboard/page.tsx
+
+import RoleBasedFeature from '@/components/RoleBasedFeature';
+
+export default function DashboardPage() {
+  return (
+    <div>
+      <h1>Dashboard</h1>
+
+      {/* Fitur hanya untuk Admin */}
+      <RoleBasedFeature allowedRoles={['admin']}>
+        <h2>Admin Features</h2>
+        <button>Manage Users</button>
+      </RoleBasedFeature>
+
+      {/* Fitur hanya untuk Engineer */}
+      <RoleBasedFeature allowedRoles={['engineer']}>
+        <h2>Engineer Features</h2>
+        <button>Manage Devices</button>
+      </RoleBasedFeature>
+
+      {/* Fitur untuk Admin dan Engineer */}
+      <RoleBasedFeature allowedRoles={['admin', 'engineer']}>
+        <h2>Technical Reports</h2>
+        <button>View Reports</button>
+      </RoleBasedFeature>
+    </div>
+  );
+}
+```
+
+Dengan pendekatan ini, kontrol akses menjadi lebih modular dan mudah dipelihara.
+
+---
+
+#### 5. Fitur Lanjutan: Redirect Setelah Login dan Logout
+
+Pada bagian ini, akan dijelaskan cara menambahkan fitur **redirect** untuk mengarahkan pengguna ke halaman tertentu setelah proses login atau logout. Fitur ini penting untuk memberikan pengalaman pengguna yang lebih intuitif, memastikan mereka diarahkan ke halaman yang relevan sesuai konteks (misalnya, dashboard setelah login dan halaman utama setelah logout). Berikut adalah implementasi redirect setelah login dan logout di NextAuth.
+
+##### 5.1 Redirect Setelah Login
+
+Setelah pengguna berhasil login, seringkali kita ingin mengarahkan mereka ke halaman yang sesuai dengan peran atau tujuan mereka, seperti halaman dashboard atau halaman beranda khusus. NextAuth memungkinkan kita untuk mengimplementasikan redirect setelah login melalui beberapa metode, salah satunya adalah dengan menggunakan properti `callbackUrl` saat memanggil fungsi `signIn`.
+
+- a. Menggunakan `callbackUrl` untuk Redirect Dinamis
+
+Untuk mengarahkan pengguna ke halaman tertentu setelah login, kita dapat menggunakan properti `callbackUrl` pada `signIn`. Properti ini akan menentukan URL tujuan setelah proses login selesai.
+
+Contoh implementasi `signIn` dengan `callbackUrl` pada halaman login:
+
+```typescript
+// app/login/page.tsx
+
+'use client';
+
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+
+export default function LoginPage() {
+  const router = useRouter();
+
+  const handleLogin = async (provider: string) => {
+    await signIn(provider, { callbackUrl: '/dashboard' });
+  };
+
+  return (
+    <div>
+      <h1>Login to HortiLink</h1>
+      <button onClick={() => handleLogin('google')}>Login with Google</button>
+      <button onClick={() => handleLogin('facebook')}>Login with Facebook</button>
+      <button onClick={() => handleLogin('github')}>Login with GitHub</button>
+    </div>
+  );
+}
+```
+
+**Penjelasan**:
+
+- Fungsi `handleLogin` memanggil `signIn` dengan parameter `callbackUrl` yang ditentukan (`/dashboard`), sehingga setelah login, pengguna akan diarahkan ke halaman `/dashboard`.
+- Jika login berhasil, pengguna akan otomatis diarahkan ke URL yang ditentukan.
+
+- b. Menentukan Redirect Berdasarkan Role Pengguna
+
+Dalam beberapa kasus, kita mungkin ingin mengarahkan pengguna ke halaman berbeda berdasarkan role mereka. Misalnya, `admin` diarahkan ke halaman manajemen, sementara `operator` diarahkan ke halaman operasional. Ini bisa dicapai dengan memanfaatkan callback `redirect` di konfigurasi NextAuth.
+
+Tambahkan callback `redirect` ke dalam konfigurasi `authOptions` di `app/api/auth/[...nextauth]/route.ts`:
+
+```typescript
+// app/api/auth/[...nextauth]/route.ts
+
+import NextAuth from 'next-auth'
+import { authOptions } from '@/lib/auth'
+
+export const authOptions = {
+  ...otherAuthOptions, // Konfigurasi NextAuth lainnya
+  callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Arahkan berdasarkan role pengguna
+      if (url === '/dashboard') {
+        const session = await getSession()
+
+        // Redirect admin ke halaman manajemen khusus
+        if (session?.user?.role === 'admin') return `${baseUrl}/admin`
+
+        // Redirect engineer ke halaman teknis
+        if (session?.user?.role === 'engineer') return `${baseUrl}/engineer`
+
+        // Default ke dashboard umum
+        return `${baseUrl}/dashboard`
+      }
+      return baseUrl
+    },
+  },
+}
+
+export default NextAuth(authOptions)
+```
+
+**Penjelasan**:
+
+- **Callback `redirect`**: Callback ini memungkinkan kita untuk mengatur URL redirect setelah login berdasarkan kondisi tertentu, dalam hal ini berdasarkan `role` pengguna.
+- Setelah login, **admin** akan diarahkan ke `/admin`, **engineer** ke `/engineer`, dan role lainnya ke `/dashboard`.
+
+##### 5.2 Redirect Setelah Logout
+
+Untuk mengarahkan pengguna ke halaman tertentu setelah mereka logout, kita bisa menggunakan properti `callbackUrl` saat memanggil fungsi `signOut`. Secara default, NextAuth akan mengarahkan pengguna ke halaman utama aplikasi setelah logout. Namun, kita bisa menentukan URL tujuan khusus jika diinginkan, seperti halaman landing atau halaman informasi publik.
+
+- a. Redirect dengan `callbackUrl` pada `signOut`
+
+Berikut adalah contoh implementasi `signOut` dengan `callbackUrl` pada komponen client:
+
+```typescript
+// app/components/LogoutButton.tsx
+
+'use client';
+
+import { signOut } from 'next-auth/react';
+
+export default function LogoutButton() {
+  const handleLogout = () => {
+    signOut({ callbackUrl: '/' }); // Redirect ke halaman utama setelah logout
+  };
+
+  return <button onClick={handleLogout}>Logout</button>;
+}
+```
+
+**Penjelasan**:
+
+- Fungsi `handleLogout` memanggil `signOut` dengan `callbackUrl` yang ditentukan sebagai `'/'`, sehingga setelah logout, pengguna akan diarahkan ke halaman utama (`/`).
+- Komponen `LogoutButton` ini dapat digunakan di berbagai halaman atau komponen lain di aplikasi untuk memberikan opsi logout kepada pengguna.
+
+- b. Menggunakan Redirect Default untuk Sign Out
+
+Jika kita tidak menentukan `callbackUrl` saat memanggil `signOut`, NextAuth akan otomatis mengarahkan pengguna ke halaman utama aplikasi (URL dasar atau root) setelah logout. Untuk aplikasi dengan kebutuhan redirect yang lebih dinamis setelah logout, kita dapat menyesuaikan `callbackUrl` langsung dalam pengaturan NextAuth atau di bagian frontend menggunakan logika yang relevan sesuai konteks aplikasi.
+
+Contoh implementasi redirect tanpa `callbackUrl` pada `signOut`:
+
+```typescript
+// app/components/LogoutButton.tsx
+
+import { signOut } from 'next-auth/react';
+
+export default function LogoutButton() {
+  return <button onClick={() => signOut()}>Logout</button>;
+}
+```
+
+Dengan implementasi ini, NextAuth akan mengarahkan pengguna ke halaman root (`/`) setelah logout tanpa perlu mengatur `callbackUrl` secara manual.
 
 ---
 
