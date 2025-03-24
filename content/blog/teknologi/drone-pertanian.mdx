@@ -4,7 +4,7 @@ date: '2025-03-24'
 tags: ['kontrol', 'iot', 'drone', 'sprayer', 'teknologi']
 draft: false
 images: []
-summary: IoT, atau singkatan dari "Internet of Things," merujuk pada konsep di mana berbagai perangkat fisik dan objek sehari-hari terhubung ke internet dan dapat saling berkomunikasi serta berbagi data.
+summary: Tantangan dalam pertanian modern - **efisiensi tenaga kerja, presisi penggunaan bahan, dan produktivitas lahan.**
 ---
 
 **Otomatisasi Pertanian dengan Drone: Penyemprotan, Pupuk, dan Benih Jadi Lebih Efektif**
@@ -12,7 +12,10 @@ summary: IoT, atau singkatan dari "Internet of Things," merujuk pada konsep di m
 - [**Pendahuluan**](#pendahuluan)
 - [**1. Memahami Konsep Drone Pertanian Otomatis**](#1-memahami-konsep-drone-pertanian-otomatis)
 - [**2. Komponen Utama untuk Membangun Drone Hexacopter Pertanian**](#2-komponen-utama-untuk-membangun-drone-hexacopter-pertanian)
-- [**Jenis Modul Telemetri:**](#jenis-modul-telemetri)
+  - [**a. Rancangan Frame Sistem Propulsi Drone Pertanian**](#a-rancangan-frame-sistem-propulsi-drone-pertanian)
+  - [**b. Flight Control System (FCS) pada Drone Pertanian**](#b-flight-control-system-fcs-pada-drone-pertanian)
+  - [🛰️ **c. Ground Control System (GCS) pada Sistem Drone Pertanian**](#️-c-ground-control-system-gcs-pada-sistem-drone-pertanian)
+  - [🧩 **d. Sistem Penyemprotan \& Penebaran Pupuk/Benih pada Drone Pertanian Kapasitas 20 Kg**](#-d-sistem-penyemprotan--penebaran-pupukbenih-pada-drone-pertanian-kapasitas-20-kg)
 - [**3. Perakitan Drone Hexacopter untuk Pertanian**](#3-perakitan-drone-hexacopter-untuk-pertanian)
 - [**4. Mengoperasikan Drone Pertanian Secara Otomatis**](#4-mengoperasikan-drone-pertanian-secara-otomatis)
 - [**5. Keuntungan Drone Pertanian Otomatis**](#5-keuntungan-drone-pertanian-otomatis)
@@ -44,7 +47,7 @@ Berikut adalah **komponen utama** yang dibutuhkan:
 
 ---
 
-- **a. Rancangan Frame Sistem Propulsi Drone Pertanian**
+#### **a. Rancangan Frame Sistem Propulsi Drone Pertanian**
 
 Salah satu aspek utama dalam sistem drone pertanian adalah **sistem propulsi**, yang bertugas menghasilkan gaya angkat (thrust) untuk membawa seluruh struktur drone, sistem semprotan, serta cairan yang dibawa. Komponen propulsi meliputi **motor, ESC (Electronic Speed Controller), propeller**, dan **baterai**. Desain propulsi yang baik memastikan drone dapat terbang dengan **stabil, efisien, dan aman**.
 
@@ -263,7 +266,7 @@ Drone sprayer modern menuntut sinergi antara **motor torsi tinggi KV rendah, pro
 
 ---
 
-- **b. Flight Control System (FCS) pada Drone Pertanian**
+#### **b. Flight Control System (FCS) pada Drone Pertanian**
 
 Flight Control System (FCS) adalah komponen inti dalam sistem drone pertanian yang bertugas mengendalikan kestabilan, navigasi, dan pelaksanaan fungsi otomatis seperti penyemprotan cairan. Untuk drone berkapasitas 20 kg, sistem ini harus mampu menangani dinamika terbang yang kompleks, beban berat, serta mampu berkomunikasi secara real-time dengan operator di lapangan melalui Ground Control System (GCS).
 
@@ -390,7 +393,7 @@ Dengan panduan ini, pembaca diharapkan dapat merancang, memilih, dan mengintegra
 
 ---
 
-- 🛰️ **c. Ground Control System (GCS) pada Sistem Drone Pertanian**
+#### 🛰️ **c. Ground Control System (GCS) pada Sistem Drone Pertanian**
 
 Dalam sistem drone pertanian, **Ground Control System (GCS)** memegang peran sentral sebagai penghubung antara **operator**, **flight control system (FCS)**, dan **drone itu sendiri**. GCS tidak hanya berfungsi sebagai alat kontrol, tetapi juga sebagai pusat perencanaan misi, pemantauan data real-time, serta antarmuka konfigurasi dan analisis.
 
@@ -466,7 +469,7 @@ Konfigurasi GCS sangat bervariasi tergantung pada skala operasional. Pada sistem
 
 Untuk misi otomatis, diperlukan komunikasi dua arah antara **Ground Station (GCS)** dan **Flight Controller (FCS)** menggunakan protokol **MAVLink**. Ini memungkinkan pengiriman data waypoint, perintah navigasi, dan penerimaan data sensor.
 
-### **Jenis Modul Telemetri:**
+**Jenis Modul Telemetri:**
 
 | Modul     | Frekuensi | Jarak                   | Cocok Untuk            |
 | --------- | --------- | ----------------------- | ---------------------- |
@@ -677,7 +680,7 @@ Dengan demikian, **GCS bukan hanya alat kontrol**, melainkan bagian dari **ekosi
 
 ---
 
-- 🧩 **d. Sistem Penyemprotan & Penebaran Pupuk/Benih pada Drone Pertanian Kapasitas 20 Kg**
+#### 🧩 **d. Sistem Penyemprotan & Penebaran Pupuk/Benih pada Drone Pertanian Kapasitas 20 Kg**
 
 Pada drone pertanian otomatis, sistem penyemprotan dan penyebaran pupuk/benih merupakan **komponen vital**. Dengan drone berkapasitas **20 liter**, sistem ini harus mampu bekerja **efisien, presisi**, dan **terotomatisasi**. Artikel ini membahas bagaimana merakit dan mengoperasikan sistem tersebut dari nol, termasuk implementasi praktis di lapangan.
 
