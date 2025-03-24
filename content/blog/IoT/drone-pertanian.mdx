@@ -2,7 +2,7 @@
 title: Merancang Drone Pertanian Kapasitas 20 Kg
 date: '2025-03-24'
 tags: ['kontrol', 'iot', 'drone', 'sprayer']
-draft: true
+draft: false
 images: []
 summary: IoT, atau singkatan dari "Internet of Things," merujuk pada konsep di mana berbagai perangkat fisik dan objek sehari-hari terhubung ke internet dan dapat saling berkomunikasi serta berbagi data.
 ---
@@ -76,6 +76,138 @@ $$
 $$
 
 ---
+
+- **1.2 Kebutuhan Thrust**
+
+Agar drone dapat:
+
+- **Hover** stabil: thrust total ≥ 100% MTOW
+- **Manuver aman**: thrust total ≥ **2× MTOW**
+
+$$
+\text{Thrust total} = 2 \times 43.6 = \mathbf{87.2 \text{ kg}}
+$$
+
+Dengan konfigurasi **hexacopter (6 motor)**:
+
+$$
+\text{Thrust per motor} = \frac{87.2}{6} \approx \mathbf{14.5 \text{ kg}}
+$$
+
+🔧 **Artinya: setiap motor harus mampu menghasilkan minimal 14.5 kg thrust untuk performa optimal dan aman.**
+
+---
+
+- **2. Hubungan KV Motor dengan Diameter Propeller**
+
+**KV (RPM/Volt)** menunjukkan karakteristik kecepatan motor. Dalam desain drone sprayer:
+
+- Propeller besar → membutuhkan **RPM rendah, torsi tinggi** → **KV rendah**
+- KV tinggi akan memutar propeller besar terlalu cepat → **inefisiensi, konsumsi daya tinggi**
+
+- **Rumus Dasar:**
+  $$
+  \text{RPM} = KV \times V
+  $$
+
+Untuk motor **100 KV** pada **baterai 12S (50.4V)**:
+
+$$
+\text{RPM} = 100 \times 50.4 = 5040 \text{ RPM (tanpa beban)}
+$$
+
+🔧 Propeller besar (≥ 30”) ideal bekerja di RPM sekitar **1500–2500 RPM**, sehingga **motor dengan KV rendah (~100–120KV)** adalah pilihan ideal.
+
+---
+
+- **3. Spesifikasi Propeller dan Perbandingan**
+
+  - **3.1 Parameter Utama Propeller**
+  - **Diameter (inch)**: Memengaruhi volume udara terdorong.
+  - **Pitch (inch)**: Jarak “langkah” per rotasi, menentukan kecepatan propeller.
+  - **Bahan**: Carbon fiber lebih ringan & kuat.
+  - **Efisiensi**: Thrust/Watt, semakin tinggi semakin efisien.
+
+  - **3.2 Tabel Perbandingan Propeller Drone Komersial**
+
+| **Model Drone** | **Diameter (inch)** | **Pitch** | **Bahan**    | **Efisiensi (g/Watt)** |
+| --------------- | ------------------- | --------- | ------------ | ---------------------- |
+| EFT G620        | 34                  | 10        | Carbon Fiber | ~10.0                  |
+| DJI Agras T30   | 40                  | 12        | Carbon Fiber | ~11.0                  |
+| Alta X          | 33                  | 9         | Carbon Fiber | ~9.0                   |
+| Custom 30”      | 30                  | 9.2       | Carbon Fiber | ~9.5                   |
+
+---
+
+- **4. ESC dan Daya Listrik**
+
+ESC harus sesuai dengan tegangan dan arus yang dibutuhkan motor. Misal:
+
+- Motor membutuhkan daya **1500W**
+- Pada **50.4V (12S)**:
+
+$$
+I = \frac{P}{V} = \frac{1500}{50.4} \approx \mathbf{30A}
+$$
+
+Namun untuk **manuver dan margin aman**, gunakan ESC **≥ 80A**.  
+Gunakan ESC dengan fitur:
+
+- Active braking
+- IP65 (waterproof)
+- Low-heat MOSFETs atau pendingin pasif/aktif
+
+---
+
+- **5. Baterai dan Estimasi Waktu Terbang**
+
+Untuk drone 6 motor × 1500W = **9000W total**
+
+- **5.1 Kapasitas & Arus Baterai**
+  Dengan **12S baterai (50.4V)**:
+
+$$
+I = \frac{9000}{50.4} \approx 179A
+$$
+
+Jika menggunakan **2x 12S 22Ah (total 44Ah)**:
+
+$$
+Waktu terbang \approx \frac{44 \times 60}{179} \approx \mathbf{14.7 \text{ menit}}
+$$
+
+🔧 Untuk endurance lebih tinggi, dapat menggunakan **14S baterai** atau menambah kapasitas (misal 2x 25Ah).
+
+- **5.2. Power System (Baterai & Power Distribution)**
+
+Sistem daya drone pertanian harus mampu menyuplai arus besar secara stabil ke seluruh sistem propulsi dan kendali.
+
+- **Baterai yang Disarankan:**
+
+  - **Jenis**: LiPo (Lithium Polymer)
+  - **Tegangan**: **12S (44.4V) hingga 14S (51.8V)** untuk efisiensi daya pada motor KV rendah
+  - **Kapasitas**: Minimal **22Ah**, disarankan konfigurasi **2x 12S 22Ah secara paralel**
+  - **Discharge Rate**: Minimal **20C**, untuk suplai arus puncak ±180A
+
+- **Power Distribution Board (PDB):**
+  - Digunakan untuk **mendistribusikan daya utama dari baterai ke 6 ESC dan modul lain (seperti flight controller & pompa)**.
+  - PDB harus **mendukung tegangan tinggi (12S/14S)** dan arus besar (**>200A total output**).
+  - Disarankan menggunakan PDB dengan **fuse proteksi, konektor XT90/AS150**, dan **pengukuran tegangan & arus (current sensor/voltage sensor)**.
+
+---
+
+- **6. Dimensi Frame dan Perbandingan Sistem Propulsi Drone Komersial**
+
+Dimensi fisik frame, khususnya **jarak antar motor**, merupakan faktor penting dalam perancangan sistem propulsi. Hal ini tidak hanya memengaruhi stabilitas dan distribusi beban, tetapi juga menentukan ruang antar propeller agar tidak saling mengganggu aliran udara (downwash).
+
+Pada drone **hexacopter**, keenam motor ditempatkan pada titik-titik dari **segienam beraturan**. Dengan demikian, terdapat dua jenis jarak penting:
+
+- **Jarak antar motor bersebelahan (side-to-side)**
+- **Jarak antar motor berseberangan (diameter frame)**
+
+  **Dasar Perhitungan Geometris**
+
+Jika kita anggap frame drone sebagai **segienam beraturan**, maka hubungan antara diameter frame (**D**) dan jarak antar motor bersebelahan (**d**) adalah:
 
 Nilai ini juga digunakan untuk memastikan **clearance antar propeller** yang umumnya berukuran besar (30” – 40”), agar tidak saling bertabrakan dan menghindari turbulensi.
 
